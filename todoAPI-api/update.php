@@ -34,7 +34,7 @@
             
         echo json_encode($caption);
     } else {
-        echo json_encode("False");
+        echo json_encode("False ".$caption." ".$is_completed);
     }
 
      

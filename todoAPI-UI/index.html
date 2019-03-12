@@ -86,7 +86,6 @@
             var changes = prompt("Make Changes", caption);
 
             if(changes != null && changes != caption) {
-                console.log('Got hrer')
                 $.ajax({
                     url: 'http://todoapi.local.geekydev.com/update.php',
                     dataType: 'text',
@@ -97,7 +96,6 @@
                         'is_completed': isComplete
                     },
                     success: function(data) {
-                        console.log('Done');
                         getData();
                     }
                 })
@@ -132,7 +130,6 @@
             });
         }
         function addItem() {
-            console.log("Geting")
             var caption = $("#task").val();
             $.ajax({
                 url: 'http://todoapi.local.geekydev.com/store.php',
@@ -155,7 +152,10 @@
 
 </head>
 <body>
-    <div class="container mt-2 mb-2">
+    <nav class="navbar navbar-light bg-light">
+        <span class="navbar-brand mb-0 h1">To-Do</span>
+    </nav>
+    <div class="container mt-4 mb-2">
         <table width="100%">
             <td width="10%"></td>
             <td width="50%"><input type="text" name="caption" id="task" placeholder="Add a task" style="width:100%"></td>
@@ -165,7 +165,7 @@
     </div>
     <div class="container">
         <table class="table data-table" id="table">
-            <tr>
+            <tr class="thead-dark">
                 <th width="60%">Caption</th>
                 <th></th>
                 <th colspan="2">Operations</th>
