@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>To-Do</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="./css/index.css">
+    <script src="http://code.jquery.com/jquery-3.3.1.js"
+    integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+    crossorigin="anonymous"></script>
+    <script>
+        $(function() {
+            $("#task").on('keyup', function (e) {
+                if (e.keyCode == 13) {
+                    addItem();
+                }
+            });
+            // $("#btn").bind("click", addItem());
+            getData();
+        })
+        
+    </script>
+    <script type="text/javascript">
+        function render(data) {
+            var taskList = document.getElementById("table-body");
+            while(taskList.firstChild) {
+                taskList.removeChild(taskList.firstChild);
+            }
+            for(var i = 0; i < data.length; i++) {
+                element = data[i];
+                var tableRow = document.createElement('tr');
+                if(element.is_completed == 1) {
+                    var captionData = document.createTextNode(element.caption);
+                    var captionCell = document.createElement('td');
+                    captionCell.setAttribute("class", "strike-through");
+                    captionCell.appendChild(captionData);
+                    var checkbox = document.createElement('INPUT');
+                    checkbox.setAttribute("type", "checkbox");
+                    checkbox.checked=true;
+                } else {
+                    var captionData = document.createTextNode(element.caption);
+                    var captionCell = document.createElement('td');
+                    captionCell.appendChild(captionData);
+                    var checkbox = document.createElement('INPUT');
+                    checkbox.setAttribute("type", "checkbox");
+                }
+                var isCompletedCell = document.createElement('td');
+                checkbox.setAttribute("onchange", "toggleData(" + element.id + ", '" + element.caption + "', " + element.is_completed +")");
+                isCompletedCell.appendChild(checkbox);
+                var deleteCell = document.createElement('td');
+                var deleteBtn = document.createElement('input');
+                deleteBtn.setAttribute("type", "button");
+                deleteBtn.setAttribute("value", "Delete");
+                deleteBtn.setAttribute("onclick", "deleteData(" + element.id + ")");
+                deleteBtn.setAttribute("class", "button");
+                deleteBtn.setAttribute("class", "btn-danger");
+                deleteCell.appendChild(deleteBtn);
+                var editCell = document.createElement('td');
+                var editBtn = document.createElement('input');
+                editBtn.setAttribute("type", "button");
+                editBtn.setAttribute("value", "Edit");
+                editBtn.setAttribute("onclick", "editData(" + element.id + ", '" + element.caption + "', " + element.is_completed +")");
+                editBtn.setAttribute("class", "button");
+                editBtn.setAttribute("class", "btn-info");
+                editCell.appendChild(editBtn);
+                tableRow.appendChild(captionCell);
+                tableRow.appendChild(isCompletedCell);
+                tableRow.appendChild(deleteCell);
+                tableRow.appendChild(editCell);
+
+                taskList.appendChild(tableRow);
+            }
+        }
+        function deleteData(id) {
+            $.ajax({
+                type: 'DELETE',
+                url: 'http://todoapi.local.geekydev.com/delete.php?id=' + id,
+                dataType: 'json',
+                success: function() {
+                    getData();
+                }
+            })
+        }
+        function editData(id, caption, isComplete) {
+            var changes = prompt("Make Changes", caption);
+
+            if(changes != null && changes != caption) {
+                console.log('Got hrer')
+                $.ajax({
+                    url: 'http://todoapi.local.geekydev.com/update.php',
+                    dataType: 'text',
+                    type: 'PUT',
+                    data: {
+                        'id': id,
+                        'caption': changes,
+                        'is_completed': isComplete
+                    },
+                    success: function(data) {
+                        console.log('Done');
+                        getData();
+                    }
+                })
+            }
+
+        }
+
+        function toggleData(id, caption, isComplete) {
+            isComplete = (isComplete + 1) % 2;
+            $.ajax({
+                url: 'http://todoapi.local.geekydev.com/update.php',
+                dataType: 'text',
+                type: 'PUT',
+                data: {
+                    'id': id,
+                    'caption': caption,
+                    'is_completed': isComplete
+                },
+                success: function(data) {
+                    getData();
+                }
+            })
+        }
+        function getData() {
+            $.ajax({
+                type: 'GET',
+                url: 'http://todoapi.local.geekydev.com/index.php',
+                dataType: 'json',
+                success: function(data) {
+                    render(data);
+                }
+            });
+        }
+        function addItem() {
+            console.log("Geting")
+            var caption = $("#task").val();
+            $.ajax({
+                url: 'http://todoapi.local.geekydev.com/store.php',
+                dataType: 'text',
+                type: 'POST',
+                contentType: 'application/x-www-form-urlencoded',
+                data: $("#task").serialize(),
+                success: function(data, textStatus, jQxhr) {
+                    $("#task").val('');
+                    getData();
+                },
+                error: function(jqXhr, textStatus, errorThrown) {
+                    $("#task").val('');
+                    console.log(errorThrown);
+                }
+            })
+        }
+    </script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+</head>
+<body>
+    <div class="container mt-2 mb-2">
+        <table width="100%">
+            <td width="10%"></td>
+            <td width="50%"><input type="text" name="caption" id="task" placeholder="Add a task" style="width:100%"></td>
+            <td width="10%"><button class="button btn-primary" id="btn" onclick="addItem()">Add Task</button></td>
+            <td width="10%"><button class="button btn-danger hidden" id="cancel-btn" onclick="cancelEdit()">Cancel</button></td>
+        </table>
+    </div>
+    <div class="container">
+        <table class="table data-table" id="table">
+            <tr>
+                <th width="60%">Caption</th>
+                <th></th>
+                <th colspan="2">Operations</th>
+            </tr>
+            <tbody id="table-body">
+
+            </tbody>
+        </table>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</body>
+</html>
